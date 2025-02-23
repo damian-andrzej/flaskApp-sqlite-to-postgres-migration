@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display All Records</title>
+</head>
+<body>
+    <h1>Welcome to the User Management Page</h1>
+
+    <!-- Button to fetch and display all records -->
+    <form method="GET" action="{{ url_for('list_users') }}">
+        <button type="submit">Show All Users</button>
+    </form>
+
+
+    <!-- Placeholder for displaying records -->
+    {% if users %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="2">No users found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+<form method="GET" action="{{ url_for('home') }}">
+        <button type="submit">go back</button>
+    </form>
+</body>
+</html>
