@@ -148,7 +148,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 ```
 New path to postgresql may differ but still uses SQLALCHEMY so only DB URI needs to be changed
-SQLALCHEMY_DATABASE_URI = 'postgresql://user:password@localhost/database_name
+                   SQLALCHEMY_DATABASE_URI = 'postgresql://user:password@localhost/database_name
 
 ```python
 SQLALCHEMY_DATABASE_URI ='postgresql://postgres:YOUR_PASSWORD@localhost/flask_db'
@@ -195,7 +195,7 @@ Host (e.g., "localhost" or the database server's IP address)
 
  1. *Registration process*
 
-    Dont need to strugle as ORM driver makes most work for us. We need only to point specific method to execute.
+    Dont need to strugle much as ORM driver makes most work for us. We need only to point specific method to execute.
 
 ```python
 @app.route('/register', methods=['GET', 'POST'])
