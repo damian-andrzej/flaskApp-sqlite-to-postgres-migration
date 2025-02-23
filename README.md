@@ -9,6 +9,11 @@ This repo rescribes step by step process  of migration  sqlite db to postresql
 * **pgloader (Recommended):** A powerful tool for data migration. Install instructions can be found [here](https://pgloader.io/).
 * **Python (Optional):** If you need to write custom scripts for data transformation.
 
+Table of content:
+1. Migration steps
+2. Database config
+3. App config
+
 ## Migration Steps
 
 1.  **Schema Extraction from SQLite:**
@@ -129,3 +134,118 @@ This repo rescribes step by step process  of migration  sqlite db to postresql
     CREATE INDEX idx_users_username ON users(username);
     ALTER TABLE posts ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id);
     ```
+
+## 2. Database config
+
+   Config for Flask app shows how app comunicates with db, path for database and the database structure itself. We need adjust it for new PostgreSQL solution.
+Firstly lets provision database 'flask_db', we dont need any structure only empty table with user that is allowed to create tables and insert records
+
+config.py
+```python
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your_secret_key_here'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///site.db'  # SQLite database for simplicity
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+```
+New path to postgresql may differ but still uses SQLALCHEMY so only DB URI needs to be changed
+SQLALCHEMY_DATABASE_URI = 'postgresql://user:password@localhost/database_name
+
+```python
+SQLALCHEMY_DATABASE_URI ='postgresql://postgres:YOUR_PASSWORD@localhost/flask_db'
+```
+
+Fantastic point is that SQLite and PostgreSQL communicates with the app in very similar way and the model is almost identical.
+Model.py file including User class works for both database solution
+
+models.py
+```python
+from flask_sqlalchemy import SQLAlchemy
+import bcrypt
+from flask_bcrypt import Bcrypt
+
+db = SQLAlchemy()
+bcrypt = Bcrypt()
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    #email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+
+    def __repr__(self):
+        return f"User('{self.username})"
+```
+
+## 3. App config
+
+Flask application needs to communicate with a PostgreSQL database, it essentially involves these key steps:
+
+- psycopg2/psycopg3:
+  - The most common and recommended way for Python to interact with PostgreSQL is through the psycopg2 or the newer psycopg3 library. These are PostgreSQL adapters for Python.
+  - They allow your Python code to execute SQL queries, retrieve data, and manage database connections
+
+- Your Flask application will need to establish a connection to the PostgreSQL database. This involves providing the database's connection details, such as:
+Host (e.g., "localhost" or the database server's IP address)
+  - Database name
+  - Username
+  - Password
+  - Port (usually 5432)
+
+### SQL operations
+
+ 1. *Registration process*
+
+    Dont need to strugle as ORM driver makes most work for us. We need only to point specific method to execute.
+
+```python
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data,password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Your account has been created! You can now log in.', 'success')
+        return redirect(url_for('login'))  # Redirect to login page in a real app
+    return render_template('register.html', form=form)
+```
+
+2. *Login*
+
+```python
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        #if username == USERNAME and password == PASSWORD:
+        user = User.query.filter_by(username=username).first()
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            session['username'] = username  # Store username in session
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password', 'danger')
+
+    return render_template('login.html')
+ ```
+
+3. *List users*
+
+```python
+def list_users():
+    # Query all users from the database
+    users = User.query.all()
+
+    # Pass the users list to the template
+    return render_template('users.html', users=users)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    #email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+
+```
