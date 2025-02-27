@@ -13,6 +13,7 @@ Table of content:
 1. Migration steps
 2. Database config
 3. App config
+4. BONUS: move app on 2 docker containers
 
 ## Migration Steps
 
@@ -249,3 +250,75 @@ class User(db.Model):
     password = db.Column(db.String(60), nullable=False)
 
 ```
+
+## 4. BONUS
+
+Postgresql advantages over sqlite is high availibility, scalabillity, peformance and security. Now we are able to contenerize app or create a cluster for database to ensure production environment with all key facilities and properties. Lets divide our app on 2 independent containers that will comunicate wiht each other.
+
+
+### Dockerfile
+
+This is regular python dockerfile for flask deployment
+
+```dockerfile
+# Use Python image
+FROM python:3.10
+
+# Set working directory
+WORKDIR /app
+
+# Copy application files
+COPY . .
+
+# Install dependencies
+RUN pip install -r requirements.txt
+
+# Expose the Flask port
+EXPOSE 5000
+
+# Run the Flask app
+CMD ["python", "app.py"]
+
+```
+
+### Docker-compose.yaml
+
+This utility allow us start app + database with one command. Flask container will wait for database container to initialize then its gonna launch with all the environments specified.
+
+```dockerfile
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: flask_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://admin:mypassword@db:5432/flask_db
+    ports:
+      - "5000:5000"
+
+volumes:
+  pgdata:
+```
+
+Its how it start...
+![My Image](images/startapp.png)
+
+
+
+and how it looks from docker's processes perspective..
+![My Image](images/dockerView.png)
+
