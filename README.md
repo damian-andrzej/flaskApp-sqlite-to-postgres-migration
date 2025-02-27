@@ -253,7 +253,7 @@ class User(db.Model):
 
 ## 4. BONUS
 
-Postgresql advantages over sqlite is high availibility, scalabillity, peformance and security. Now we are able to contenerize app or create a cluster for database to ensure production environment with all key facilities and properties. Lets divide our app on 2 independent containers that will comunicate wiht each other.
+Postgresql advantages over sqlite is high availibility, scalabillity, peformance and security. Now we are able to contenerize app or create a cluster for database to ensure production environment with all key facilities and properties. Lets divide our app on 2 independent containers that will comunicate with each other.
 
 
 ### Dockerfile
