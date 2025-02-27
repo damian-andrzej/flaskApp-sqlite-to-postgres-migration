@@ -315,10 +315,12 @@ volumes:
 ```
 
 Its how it start...
+
 ![My Image](images/startapp.png)
 
 
 
 and how it looks from docker's processes perspective..
+
 ![My Image](images/dockerView.png)
 
