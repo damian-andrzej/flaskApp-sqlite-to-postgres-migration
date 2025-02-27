@@ -1,5 +1,5 @@
 # flaskApp-sqlite-to-postgres-migration
-This repo rescribes step by step process  of migration  sqlite db to postresql
+This repo rescribes step by step process of sqlite db migration to postresql
 
 ## Prerequisites
 
