@@ -152,7 +152,7 @@ New path to postgresql may differ but still uses SQLALCHEMY so only DB URI needs
                    SQLALCHEMY_DATABASE_URI = 'postgresql://user:password@localhost/database_name
 
 ```python
-SQLALCHEMY_DATABASE_URI ='postgresql://postgres:YOUR_PASSWORD@localhost/flask_db'
+SQLALCHEMY_DATABASE_URI ='postgresql://postgres:YOUR_PASSWORD@localhost:5432/flask_db'
 ```
 
 Fantastic point is that SQLite and PostgreSQL communicates with the app in very similar way and the model is almost identical.
@@ -254,6 +254,12 @@ class User(db.Model):
 ## 4. BONUS
 
 Postgresql advantages over sqlite is high availibility, scalabillity, peformance and security. Now we are able to contenerize app or create a cluster for database to ensure production environment with all key facilities and properties. Lets divide our app on 2 independent containers that will comunicate with each other.
+
+First  step is to modify DATABASE_URI. It will be hosted on container so instead of localhost we need container name and port defined in docker-compose.yaml
+
+```python
+SQLALCHEMY_DATABASE_URI = 'postgresql://user:password@container_name:5432/database_name
+```
 
 
 ### Dockerfile
