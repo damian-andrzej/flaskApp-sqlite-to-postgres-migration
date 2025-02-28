@@ -341,7 +341,7 @@ volumes:
   pgdata:
 ```
 
-Best Practice : Hide environment variables, especially passwords!. Lets specify env file that will inject those credentials for us 
+Best Practice : Hide environment variables, especially passwords! Lets specify env file that will inject those credentials for us 
 ```bash
 POSTGRES_USER: admin
 POSTGRES_PASSWORD: mypassword
