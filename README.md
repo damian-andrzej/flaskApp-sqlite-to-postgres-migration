@@ -155,6 +155,8 @@ New path to postgresql may differ but still uses SQLALCHEMY so only DB URI needs
 SQLALCHEMY_DATABASE_URI ='postgresql://postgres:YOUR_PASSWORD@localhost:5432/flask_db'
 ```
 
+
+
 Fantastic point is that SQLite and PostgreSQL communicates with the app in very similar way and the model is almost identical.
 Model.py file including User class works for both database solution
 
@@ -261,6 +263,25 @@ First  step is to modify DATABASE_URI. It will be hosted on container so instead
 SQLALCHEMY_DATABASE_URI = 'postgresql://user:password@container_name:5432/database_name
 ```
 
+Best practice : dont store credential explicitly in code, common way to do this is secrets that we gonna apply.
+
+```bash
+echo -n "admin" > pg_user.txt
+echo -n "mypassword" > pg_password.txt
+echo -n "flask_db" > pg_db.txt
+
+docker secret create pg_user pg_user.txt
+docker secret create pg_password pg_password.txt
+docker secret create pg_db pg_db.txt
+```
+
+then we are able to edit DATABASE_URI
+```python
+DATABASE_URL: "postgresql://$(cat /run/secrets/pg_user):$(cat /run/secrets/pg_password)@db:5432/$(cat /run/secrets/pg_db)"
+```
+
+
+
 
 ### Dockerfile
 
@@ -319,6 +340,46 @@ services:
 volumes:
   pgdata:
 ```
+
+Best Practice : Hide environment variables, especially passwords!. Lets specify env file that will inject those credentials for us 
+```bash
+POSTGRES_USER: admin
+POSTGRES_PASSWORD: mypassword
+POSTGRES_DB: flask_db
+
+echo -n "POSTGRES_USER=admin\nPOSTGRES_PASSWORD=mypassword\nPOSTGRES_DB=flask_db"> .env
+```
+
+Docker-compose.yaml after this minor change
+
+```dockerfile
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://$(cat /run/secrets/pg_user):$(cat /run/secrets/pg_password)@db:5432/$(cat /run/secrets/pg_db)" 
+    ports:
+      - "5000:5000"
+
+volumes:
+  pgdata:
+
+
+
 
 Its how it start...
 
